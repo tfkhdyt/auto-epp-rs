@@ -8,7 +8,7 @@
 
 - AMD CPU with the AMD-Pstate-EPP driver enabled.
 - Linux 6.3+
-- rslang (make deps)
+- Rust (make deps)
 
 ## How to enable amd-pstate-epp
 
