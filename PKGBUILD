@@ -1,7 +1,7 @@
 # Maintainer: Taufik Hidayat <tfkhdyt@proton.me>
 pkgname=auto-epp-rs
 pkgver=0.0.1
-pkgrel=3
+pkgrel=4
 epoch=
 pkgdesc="Program that automatically manages the EPP of your AMD CPU using the AMD-Pstate driver (Rewritten in Rust)"
 arch=("x86_64")
