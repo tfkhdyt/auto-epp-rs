@@ -1,0 +1,12 @@
+[Unit]
+Description=auto-epp-rs - Automatic EPP Changer for amd-pstate-epp
+After=network.target network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/auto-epp-rs
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
