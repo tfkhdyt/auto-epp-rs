@@ -10,7 +10,7 @@ epp_state_for_BAT=power
 ";
 
 pub fn read_config() -> (String, String) {
-    if let Err(_) = fs::metadata(&CONFIG_PATH) {
+    if fs::metadata(CONFIG_PATH).is_err() {
         if let Err(err) = write_file(Path::new(&CONFIG_PATH), DEFAULT_CONFIG) {
             eprintln!("Error: Failed to create config file: {}", err);
             process::exit(1);
@@ -28,9 +28,9 @@ pub fn read_config() -> (String, String) {
 
     config_lines.into_iter().for_each(|line| {
         if line.starts_with("epp_state_for_AC") {
-            epp_state_for_ac = line.split("=").collect::<Vec<&str>>()[1];
+            epp_state_for_ac = line.split('=').collect::<Vec<&str>>()[1];
         } else if line.starts_with("epp_state_for_BAT") {
-            epp_state_for_bat = line.split("=").collect::<Vec<&str>>()[1];
+            epp_state_for_bat = line.split('=').collect::<Vec<&str>>()[1];
         }
     });
 
