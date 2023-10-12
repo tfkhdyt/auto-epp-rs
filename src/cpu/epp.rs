@@ -13,7 +13,7 @@ pub fn set_epp(epp_value: &str) -> io::Result<()> {
         let epp_file_path = Path::new(&epp_file);
 
         if let Ok(current_epp) = read_file(epp_file_path) {
-            if current_epp.trim() == epp_value {
+            if current_epp == epp_value {
                 continue;
             }
         }

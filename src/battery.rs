@@ -29,7 +29,7 @@ pub fn is_charging() -> io::Result<bool> {
                 let Ok(status_data) = read_file(&path.join("status")) else {
                     continue;
                 };
-                if status_data.trim() == "Discharging" {
+                if status_data == "Discharging" {
                     return Ok(false);
                 }
             }
