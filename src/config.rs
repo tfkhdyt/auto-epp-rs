@@ -14,6 +14,7 @@ epp_state_for_BAT=power
 ";
 pub const DEFAULT_GOVERNOR: &str = "powersave";
 
+#[derive(Default)]
 pub struct EPPState {
     pub ac: String,
     pub bat: String,
@@ -26,22 +27,17 @@ pub fn get_epp_state() -> io::Result<EPPState> {
 
     let config_file = File::open(CONFIG_PATH)?;
     let reader = io::BufReader::new(config_file);
-
-    let mut epp_state_for_ac = String::new();
-    let mut epp_state_for_bat = String::new();
+    let mut epp_state = EPPState::default();
 
     for line in reader.lines() {
         let ln = line?;
 
         if ln.starts_with("epp_state_for_AC") {
-            epp_state_for_ac = ln.split('=').collect::<Vec<&str>>()[1].to_owned();
+            epp_state.ac = ln.split('=').collect::<Vec<&str>>()[1].to_owned();
         } else if ln.starts_with("epp_state_for_BAT") {
-            epp_state_for_bat = ln.split('=').collect::<Vec<&str>>()[1].to_owned();
+            epp_state.bat = ln.split('=').collect::<Vec<&str>>()[1].to_owned();
         }
     }
 
-    Ok(EPPState {
-        ac: epp_state_for_ac,
-        bat: epp_state_for_bat,
-    })
+    Ok(epp_state)
 }
