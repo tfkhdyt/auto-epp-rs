@@ -1,11 +1,8 @@
-use std::{path::Path, process};
+use std::{io, path::Path};
 
-use crate::{
-    config,
-    utils::fs::{read_file, write_file},
-};
+use crate::utils::fs::{read_file, write_file};
 
-pub fn set_governor() {
+pub fn set_governor(governor: &str) -> io::Result<()> {
     let num_cores = num_cpus::get();
 
     for cpu in 0..num_cores {
@@ -16,14 +13,13 @@ pub fn set_governor() {
         let governor_file_path = Path::new(&governor_file);
 
         if let Ok(current_governor) = read_file(governor_file_path) {
-            if current_governor.trim() == config::DEFAULT_GOVERNOR {
+            if current_governor == governor {
                 continue;
             }
         }
 
-        if let Err(err) = write_file(governor_file_path, config::DEFAULT_GOVERNOR) {
-            eprintln!("Error: Failed to create config file: {}", err);
-            process::exit(1);
-        }
+        write_file(governor_file_path, governor)?;
     }
+
+    Ok(())
 }

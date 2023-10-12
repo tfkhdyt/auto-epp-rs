@@ -2,7 +2,6 @@ use std::{
     fs::{self, File},
     io::{self, BufRead},
     path::Path,
-    process,
 };
 
 use crate::utils::fs::write_file;
@@ -15,29 +14,24 @@ epp_state_for_BAT=power
 ";
 pub const DEFAULT_GOVERNOR: &str = "powersave";
 
-pub fn read_config() -> (String, String) {
+pub struct EPPState {
+    pub ac: String,
+    pub bat: String,
+}
+
+pub fn get_epp_state() -> io::Result<EPPState> {
     if fs::metadata(CONFIG_PATH).is_err() {
-        if let Err(err) = write_file(Path::new(&CONFIG_PATH), DEFAULT_CONFIG) {
-            eprintln!("Error: Failed to create config file: {}", err);
-            process::exit(1);
-        }
+        write_file(Path::new(&CONFIG_PATH), DEFAULT_CONFIG)?;
     }
 
-    let config_file = File::open(CONFIG_PATH).unwrap_or_else(|err| {
-        eprintln!("Error: Failed to open config file: {}", err);
-        process::exit(1);
-    });
-
+    let config_file = File::open(CONFIG_PATH)?;
     let reader = io::BufReader::new(config_file);
 
     let mut epp_state_for_ac = String::new();
     let mut epp_state_for_bat = String::new();
 
     for line in reader.lines() {
-        let ln = line.unwrap_or_else(|err| {
-            eprintln!("Error: Failed to open config file: {}", err);
-            process::exit(1);
-        });
+        let ln = line?;
 
         if ln.starts_with("epp_state_for_AC") {
             epp_state_for_ac = ln.split('=').collect::<Vec<&str>>()[1].to_owned();
@@ -46,5 +40,8 @@ pub fn read_config() -> (String, String) {
         }
     }
 
-    (epp_state_for_ac, epp_state_for_bat)
+    Ok(EPPState {
+        ac: epp_state_for_ac,
+        bat: epp_state_for_bat,
+    })
 }

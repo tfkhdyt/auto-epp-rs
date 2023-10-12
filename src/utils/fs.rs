@@ -8,7 +8,7 @@ pub fn read_file(path: &Path) -> io::Result<String> {
     let mut file = File::open(path)?;
     let mut file_str = String::new();
     file.read_to_string(&mut file_str)?;
-    Ok(file_str)
+    Ok(file_str.trim().to_owned())
 }
 
 pub fn write_file(path: &Path, content: &str) -> io::Result<()> {

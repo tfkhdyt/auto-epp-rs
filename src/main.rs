@@ -4,23 +4,46 @@ mod cpu;
 mod user;
 mod utils;
 
+use cpu::{driver, epp, governor};
 use std::{thread, time::Duration};
 
-use cpu::{driver, epp, governor};
+use crate::utils::fmt;
 
 fn main() {
-    user::check_root();
-    driver::check_driver();
+    if !user::is_user_root() {
+        fmt::fatalln("auto-epp-rs must be run with root privileges", None);
+    }
 
-    let (epp_state_for_ac, epp_state_for_bat) = config::read_config();
+    match driver::get_scaling_driver() {
+        Ok(scaling_driver) => {
+            if scaling_driver != "amd-pstate-epp" {
+                fmt::fatalln("the system is not running amd-pstate-epp", None);
+            }
+        }
+        Err(err) => fmt::fatalln("failed to get scaling driver", Some(&err)),
+    };
+
+    let epp_state = match config::get_epp_state() {
+        Ok(v) => v,
+        Err(err) => fmt::fatalln("failed to get epp state", Some(&err)),
+    };
 
     loop {
-        governor::set_governor();
+        if let Err(err) = governor::set_governor(config::DEFAULT_GOVERNOR) {
+            fmt::fatalln("failed to set cpu governor", Some(&err));
+        }
 
-        if battery::check_charging_status() {
-            epp::set_epp(&epp_state_for_ac);
-        } else {
-            epp::set_epp(&epp_state_for_bat);
+        match battery::is_charging() {
+            Ok(is_charging) => {
+                if is_charging {
+                    if let Err(err) = epp::set_epp(&epp_state.ac) {
+                        fmt::fatalln("failed to set epp state", Some(&err));
+                    }
+                } else if let Err(err) = epp::set_epp(&epp_state.bat) {
+                    fmt::fatalln("failed to set epp state state", Some(&err));
+                }
+            }
+            Err(err) => fmt::fatalln("failed to get charging state", Some(&err)),
         }
 
         thread::sleep(Duration::from_secs(3));

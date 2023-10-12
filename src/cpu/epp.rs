@@ -1,8 +1,8 @@
-use std::{path::Path, process};
+use std::{io, path::Path};
 
 use crate::utils::fs::{read_file, write_file};
 
-pub fn set_epp(epp_value: &str) {
+pub fn set_epp(epp_value: &str) -> io::Result<()> {
     let cpu_count = num_cpus::get();
 
     for cpu in 0..cpu_count {
@@ -18,12 +18,8 @@ pub fn set_epp(epp_value: &str) {
             }
         }
 
-        if let Err(err) = write_file(Path::new(&epp_file_path), epp_value) {
-            eprintln!(
-                "Error: Failed to set energy performance preference: {}",
-                err
-            );
-            process::exit(1);
-        }
+        write_file(Path::new(&epp_file_path), epp_value)?;
     }
+
+    Ok(())
 }

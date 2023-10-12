@@ -1,22 +1,13 @@
-use std::{fs, path::Path, process};
+use std::{fs, io, path::Path};
 
 use crate::utils::fs::read_file;
 
-pub fn check_charging_status() -> bool {
+pub fn is_charging() -> io::Result<bool> {
     let power_supply_path = Path::new("/sys/class/power_supply/");
-    let entries = fs::read_dir(power_supply_path).unwrap_or_else(|err| {
-        eprintln!("Error: Failed to read power supply directory: {}", err);
-        process::exit(1);
-    });
+    let entries = fs::read_dir(power_supply_path)?;
 
     for file in entries.into_iter() {
-        let entry = file.unwrap_or_else(|err| {
-            eprintln!(
-                "Error: Failed to read power supply directory entry: {}",
-                err
-            );
-            process::exit(1);
-        });
+        let entry = file?;
         let path = entry.path();
 
         if path.is_dir() || path.is_symlink() {
@@ -24,7 +15,7 @@ pub fn check_charging_status() -> bool {
                 continue;
             };
 
-            if power_type.trim() == "Mains" {
+            if power_type == "Mains" {
                 let Ok(online_data) = read_file(&path.join("online")) else {
                     continue;
                 };
@@ -32,18 +23,18 @@ pub fn check_charging_status() -> bool {
                     continue;
                 };
                 if online_status == 1 {
-                    return true;
+                    return Ok(true);
                 }
-            } else if power_type.trim() == "Battery" {
+            } else if power_type == "Battery" {
                 let Ok(status_data) = read_file(&path.join("status")) else {
                     continue;
                 };
                 if status_data.trim() == "Discharging" {
-                    return false;
+                    return Ok(false);
                 }
             }
         }
     }
 
-    true
+    Ok(true)
 }
